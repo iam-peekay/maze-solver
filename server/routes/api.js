@@ -1,9 +1,9 @@
 const axios = require('axios');
 const baseURL =  'http://ec2-52-32-160-115.us-west-2.compute.amazonaws.com:9099';
 var currentBoard = [];
-var count = 0;
+var currentMaze;
 
-const checkValidAsync = (id, xPosition, yPosition) => {
+const checkValidPromise = (id, yPosition, xPosition) => {
   return new Promise((resolve, reject) => {
     axios.get(`${baseURL}/maze/${id}/check?x=${xPosition}&y=${yPosition}`)
       .then(function(response) {
@@ -15,7 +15,7 @@ const checkValidAsync = (id, xPosition, yPosition) => {
   });
 }
 
-function testing(id, i, j) {
+function checkValidAsync(id, i, j) {
   axios.get(`${baseURL}/maze/${id}/check?x=${i}&y=${j}`)
     .then(function(response) {
       currentBoard[i][j] = true;
@@ -25,85 +25,101 @@ function testing(id, i, j) {
     });
 }
 
-const makeBoard = (id, width, height, board) => {
+const makeBoard = (id, height, width, board) => {
   var funcs = [];
     for (var i = 0; i < height; i++) {
-      funcs.push([]);
       board.push([]);
+      funcs.push([]);
       for (var j = 0; j < width; j++) {
-        funcs[i][j] = testing.bind(null, id, i, j)();
+        funcs[i][j] = checkValidAsync.bind(null, id, i, j)();
       }
     }
 };
 
-makeBoard('aeffca45ed4ceb6e766f3f57a5e97aa74df0c976ebaef7ed7', 14, 14, currentBoard);
 
-const solvePuzzle = (id, height, width) => {
+// makeBoard('f1a3aaedaf4ee5b72db95d9754f735aefacd6ea4977d373f597eaaaef2badd3ae6fabd35b17abea8f8daabeae53dd55b55a6f4cdd6c5fb67b684d4ca3db7d7f4ada7515f555efe95fa5ab7d2f51aa669da7c3967fd46bcd546a4b3abbff95fee92ff', 28, 28, currentBoard);
+//
+// setTimeout(function() {
+//   console.log(currentBoard);
+// }, 20000);
+
+const solvePuzzle = (currentMaze, currentBoard) => {
   // if no id, width and height provided, we can't proceed
-  if (id === null || height === null || width === null) {
-    throw new Error('please enter a maze id');
+  if (currentMaze === null || currentBoard === null) {
+    throw new Error('please enter a valid maze and board');
   }
 
+  const id = currentMaze.id;
+  const lastCol = currentMaze.width - 1;
+  const lastRow = currentMaze.height - 1;
+
+  // Solution
   var path = [];
-  var lastRow = height - 1;
-  var lastCol = width - 1;
   // memoize positions which have already been checked to be
   // valid or invalid
   var memo = {};
 
-  // Helper function to find path
-  function findPath(id, lastRow, lastCol, currentRow, currentCol, path, memo) {
-    if (currentCol > lastCol || currentRow > lastRow || currentRow < 0 || currentCol < 0) {
-      return false;
-    }
-
-    var atOrigin = currentRow === 0 && currentCol === 0;
-    var pathExists = false;
-    var key = `{x: ${currentCol}, y: ${currentRow}}`;
-
-    if (memo[key] !== undefined) {
-        if (atOrigin || findPath(id, lastRow, lastCol, currentRow + 1, currentCol, path, memo) || findPath(id, lastRow, lastCol, currentRow, currentCol + 1, path, memo) || findPath(id, lastRow, lastCol, currentRow + 1, currentCol + 1, path, memo)) {
-
-        }
-    } else {
-    }
-  }
-
-
-  if (findPath(id, lastRow, lastCol, path, memo)) {
+  if (findPath(id, currentBoard, lastRow, lastCol, path, memo)) {
     return path;
   }
   // empty array if no solution found
   return [];
+
+  // Helper function to find path
+  function findPath(id, board, row, col, path, memo) {
+    if (row < 0 || col < 0 || !board[currentCol][currentRow]) {
+      return false;
+    }
+
+    var point = `{x: ${currentCol}, y: ${currentRow}}`;
+    if (memo[point]) {
+      return memo[point];
+    }
+
+    var atOrigin = currentRow === 0 && currentCol === 0;
+    var pathExists = false;
+
+    if (atOrigin || findPath(id, board, row - 1, col, path, memo) || findPath(id, board, row, col - 1, path, memo) || findPath(id, board, row - 1, col - 1, path, memo)) {
+      path.push(point);
+      pathExists = true;
+    }
+    memo[point] = pathExists;
+    return pathExists;
+  }
 }
 
 
 
 module.exports = (app) => {
-  // Get Maze
+  // Get current maze via Krypton API and build up board based
+  // on current maze
   app.get('/getmaze', (req, res) => {
     axios.post(`${baseURL}/maze`)
       .then(function(maze) {
-        console.log(maze.data);
+        currentMaze = maze.data;
+        currentBoard = [];
+        makeBoard(maze.data.id, maze.data.height, maze.data.width, currentBoard);
+        res.status(200).send(currentMaze);
       })
       .catch(function (error) {
-        console.log(error);
+        throw new Error(error.stack);
       });
   });
 
+  // Solve current maze and send path solution as response
   app.get('/solvemaze', (req, res) => {
-    var id = req.body.id;
-    var height = req.body.height;
-    var width = req.body.width;
-
+    var path = solvePuzzle(currentMaze, currentBoard);
+    res.status(200).send({'Path to end of maze': path});
   });
 
+  // Submit maze to the Krypton API
   app.get('/submitmaze', (req, res) => {
-    res.send('Submit maze')
+
   });
 
+  // TEMP for testing
   app.get('/testing', (req, res) => {
-    res.send(currentBoard);
+    res.status(200).send({'Current board': currentBoard, 'Current maze': currentMaze});
   });
 
 };
