@@ -2,16 +2,30 @@
 <html>
   <head>
     <title>Krypton Maze Challenge</title>
-    <meta name="viewport" content="width=device-width">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
   </head>
   <body>
     <h1> Welcome to Krypton's Maze Challenge </h1>
-    <button id="getMaze">Get the next maze!</button>
-    <div id="currentMaze">
+    <div class="container">
+      <div class="row">
+        <div class="col-xs-6 col-md-4">
+          <button id="getMaze">Get the next maze!</button>
+          <div id="currentMaze">
 
+          </div>
+        </div>
+        <div class="col-xs-6 col-md-4">
+          <button id="solveMaze">Solve the maze!</button>
+          <div id="solvedMaze">
+
+          </div>
+        </div>
+        <div class="col-xs-6 col-md-4">
+          <button id="submitSolution">Submit my solution!</button>
+        </div>
+      </div>
     </div>
-    <button id="solveMaze">Solve the maze!</button>
-    <button id="submitSolution">Submit my solution!</button>
     <script src="app.js"></script>
   </body>
 </html>
