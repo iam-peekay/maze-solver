@@ -1,4 +1,5 @@
 const axios = require('axios');
+const request = require('sync-request');
 const baseURL =  'http://ec2-52-32-160-115.us-west-2.compute.amazonaws.com:9099';
 // These variables represent the current state of the maze
 var currentBoard = [];
@@ -21,12 +22,30 @@ const makeBoard = (id, height, width, board) => {
       board.push([]);
       funcs.push([]);
       for (var j = 0; j < width; j++) {
-        board[i][j] = 'todo';
+        board[i][j] = -1;
         funcs[i][j] = checkValidAsync.bind(null, id, i, j)();
       }
     }
 };
 
+const makeBoardSync = (id, height, width, board) => {
+    for (var i = 0; i < height; i++) {
+      board.push([]);
+      for (var j = 0; j < width; j++) {
+        board[i][j] = -1;
+        var res = request('GET', `${baseURL}/maze/${id}/check?x=${i}&y=${j}`);
+        while(res.statusCode > 500) {
+          res = request('GET', `${baseURL}/maze/${id}/check?x=${i}&y=${j}`);
+        }
+        if (res.statusCode === 200) {
+            board[i][j] = 1;
+        } else {
+          board[i][j] = 0;
+        }
+      }
+    }
+    console.log(board);
+};
 
 const solvePuzzle = (currentMaze, currentBoard) => {
   // if no id, width and height provided, we can't proceed
@@ -43,7 +62,6 @@ const solvePuzzle = (currentMaze, currentBoard) => {
   // memoize positions which have already been checked to be
   // valid or invalid
   var memo = {};
-
   // Return a path if solution is found
   if (findPath(id, currentBoard, lastColumn, lastRow, path, memo)) {
     return path;
@@ -53,7 +71,19 @@ const solvePuzzle = (currentMaze, currentBoard) => {
 
   // Inner helper function to find path
   function findPath(id, board, col, row, path, memo) {
-    if (row < 0 || col < 0 || row > lastRow || col > lastColumn || (board[row][col] === 0)) {
+    // if (row < 0 || col < 0 || (board[row][col] === 0)) {
+    //   return false;
+    // }
+    if (row < 0 || col < 0) {
+      return false;
+    }
+
+    var res = request('GET', `${baseURL}/maze/${id}/check?x=${row}&y=${col}`);
+    while(res.statusCode > 500) {
+      res = request('GET', `${baseURL}/maze/${id}/check?x=${row}&y=${col}`);
+    }
+
+    if (res.statusCode === 403) {
       return false;
     }
 
@@ -63,7 +93,6 @@ const solvePuzzle = (currentMaze, currentBoard) => {
     if (memo[point] !== undefined) {
       return memo[point];
     }
-
     // Check if there exists a path from the start (0, 0) to
     // the current point (col, row). We do this by working backwards
     // from the max x-value (width - 1) and max y-value (height - 1)
@@ -91,8 +120,8 @@ module.exports = (app) => {
     axios.post(`${baseURL}/maze`)
       .then((maze) => {
         currentMaze = maze.data;
-        currentBoard = [];
-        makeBoard(maze.data.id, maze.data.height, maze.data.width, currentBoard);
+        // currentBoard = [];
+        // makeBoardSync(maze.data.id, maze.data.height, maze.data.width, currentBoard);
         res.status(200).send(currentMaze);
       })
       .catch(function (error) {
