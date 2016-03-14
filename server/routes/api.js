@@ -2,54 +2,13 @@ const axios = require('axios');
 const request = require('sync-request');
 const baseURL =  'http://ec2-52-32-160-115.us-west-2.compute.amazonaws.com:9099';
 // These variables represent the current state of the maze
-var currentBoard = [];
+// var currentBoard = [];
 var currentMaze;
 var currentPath;
 
-const checkValidAsync = (id, i, j) => {
-  axios.get(`${baseURL}/maze/${id}/check?x=${i}&y=${j}`)
-    .then(function(response) {
-      currentBoard[i][j] = 1;
-    })
-    .catch(function (error) {
-      currentBoard[i][j] = 0;
-    });
-}
-
-const makeBoard = (id, height, width, board) => {
-  var funcs = [];
-    for (var i = 0; i < height; i++) {
-      board.push([]);
-      funcs.push([]);
-      for (var j = 0; j < width; j++) {
-        board[i][j] = -1;
-        funcs[i][j] = checkValidAsync.bind(null, id, i, j)();
-      }
-    }
-};
-
-const makeBoardSync = (id, height, width, board) => {
-    for (var i = 0; i < height; i++) {
-      board.push([]);
-      for (var j = 0; j < width; j++) {
-        board[i][j] = -1;
-        var res = request('GET', `${baseURL}/maze/${id}/check?x=${i}&y=${j}`);
-        while(res.statusCode > 500) {
-          res = request('GET', `${baseURL}/maze/${id}/check?x=${i}&y=${j}`);
-        }
-        if (res.statusCode === 200) {
-            board[i][j] = 1;
-        } else {
-          board[i][j] = 0;
-        }
-      }
-    }
-    console.log(board);
-};
-
-const solvePuzzle = (currentMaze, currentBoard) => {
+const solvePuzzle = (currentMaze) => {
   // if no id, width and height provided, we can't proceed
-  if (currentMaze === undefined || currentBoard === undefined) {
+  if (currentMaze === undefined) {
     throw new Error('please enter a valid maze and board');
   }
 
@@ -59,30 +18,34 @@ const solvePuzzle = (currentMaze, currentBoard) => {
 
   // Solution
   var path = [];
-  // memoize positions which have already been checked to be
+  // Memoize positions which have already been checked as being
   // valid or invalid
   var memo = {};
   // Return a path if solution is found
-  if (findPath(id, currentBoard, lastColumn, lastRow, path, memo)) {
+  if (findPath(id, lastColumn, lastRow, path, memo)) {
     return path;
   }
   // Return empty array if no solution found
   return [];
 
   // Inner helper function to find path
-  function findPath(id, board, col, row, path, memo) {
-    // if (row < 0 || col < 0 || (board[row][col] === 0)) {
-    //   return false;
-    // }
+  function findPath(id, col, row, path, memo) {
+    // If we are out of bounds, return immediately to save us
+    // the extra API call
     if (row < 0 || col < 0) {
       return false;
     }
 
+    // Check if the current position is valid
     var res = request('GET', `${baseURL}/maze/${id}/check?x=${row}&y=${col}`);
+    // Since some of the responses are returning internal server
+    // error, let's check for this and re-run the request if we
+    // get internal server error
     while(res.statusCode > 500) {
       res = request('GET', `${baseURL}/maze/${id}/check?x=${row}&y=${col}`);
     }
 
+    // If invalid position, return false.
     if (res.statusCode === 403) {
       return false;
     }
@@ -97,31 +60,27 @@ const solvePuzzle = (currentMaze, currentBoard) => {
     // the current point (col, row). We do this by working backwards
     // from the max x-value (width - 1) and max y-value (height - 1)
     // of the maze, and find a path to all of it's adjacent cells.
-    // I make the assumption that we can only move right, up or
-    // diagonal up (right + up)
+    // We can only move right or up
     var pathExists = false;
-    // findPath(id, board, col - 1, row - 1, path, memo)
     // If we are at the origin, we know that the path exists
     var atOrigin = row === 0 && col === 0;
-    // Check all adjacent points, working backwards
-    if (atOrigin || findPath(id, board, col, row - 1, path, memo) || findPath(id, board, col - 1, row, path, memo)) {
+    // Check all adjacent points down and left (working backwards)
+    if (atOrigin || findPath(id, col, row - 1, path, memo) || findPath(id, col - 1, row, path, memo)) {
       path.push({x: row, y: col});
       pathExists = true;
     }
+    // Mark point with either path existing or not existing
     memo[point] = pathExists;
     return pathExists;
   }
 }
 
 module.exports = (app) => {
-  // Get current maze via Krypton API and build up board based
-  // on current maze w x h dimensions
+  // Get current maze via Krypton API
   app.get('/getmaze', (req, res) => {
     axios.post(`${baseURL}/maze`)
       .then((maze) => {
         currentMaze = maze.data;
-        // currentBoard = [];
-        // makeBoardSync(maze.data.id, maze.data.height, maze.data.width, currentBoard);
         res.status(200).send(currentMaze);
       })
       .catch(function (error) {
@@ -131,15 +90,15 @@ module.exports = (app) => {
 
   // Solve current maze and send path solution as response
   app.get('/solvemaze', (req, res) => {
-    currentPath = solvePuzzle(currentMaze, currentBoard);
-    res.status(200).send({'Path to end of maze': currentPath, 'Current board': currentBoard});
+    currentPath = solvePuzzle(currentMaze);
+    res.status(200).send({'Path to end of maze': currentPath});
   });
 
-  // Submit maze to the Krypton API
+  // Submit the solved maze to the Krypton API
   app.get('/submitmaze', (req, res) => {
     var id = currentMaze.id;
-    console.log(currentMaze, currentPath);
-    console.log(currentBoard);
+    console.log('Current maze:', currentMaze);
+    console.log('Current path: ', currentPath);
     axios.post(`${baseURL}/maze/${id}/solve`, currentPath)
       .then((response) => {
         console.log(response);
@@ -152,10 +111,62 @@ module.exports = (app) => {
         throw new Error(error.stack);
       });
   });
+}
 
-  // TEMP for testing
-  app.get('/testing', (req, res) => {
-    res.status(200).send({'Current board': currentBoard, 'Current maze': currentMaze});
-  });
 
-};
+/* ==============================================================
+   BELOW ARE ONLY USEFUL IF WE WANT TO BUILD UP THE BOARD FIRST
+   AND THEN SOLVE THE MAZE. IGNORE.
+   ==============================================================
+*/
+  const checkValidAsync = (id, i, j) => {
+    axios.get(`${baseURL}/maze/${id}/check?x=${i}&y=${j}`)
+      .then(function(response) {
+        currentBoard[i][j] = 1;
+      })
+      .catch(function (error) {
+        currentBoard[i][j] = 0;
+      });
+  }
+
+  const makeBoard = (id, height, width, board) => {
+    var funcs = [];
+      for (var i = 0; i < height; i++) {
+        board.push([]);
+        funcs.push([]);
+        for (var j = 0; j < width; j++) {
+          board[i][j] = -1;
+          funcs[i][j] = checkValidAsync.bind(null, id, i, j)();
+        }
+      }
+  };
+
+  const makeBoardSync = (id, height, width, board) => {
+      for (var i = 0; i < height; i++) {
+        board.push([]);
+        for (var j = 0; j < width; j++) {
+          board[i][j] = -1;
+          var res = request('GET', `${baseURL}/maze/${id}/check?x=${i}&y=${j}`);
+          while(res.statusCode > 500) {
+            res = request('GET', `${baseURL}/maze/${id}/check?x=${i}&y=${j}`);
+          }
+          if (res.statusCode === 200) {
+              board[i][j] = 1;
+          } else {
+            board[i][j] = 0;
+          }
+        }
+      }
+      console.log(board);
+  };
+
+// Used in "getMaze" api method when we want to build up the
+// board first:
+// currentBoard = [];
+// makeBoardSync(maze.data.id, maze.data.height, maze.data.width, currentBoard);
+
+// Then in "findPath", add this line and remove the synchronous
+// calls to API
+// if (row < 0 || col < 0 || (board[row][col] === 0)) {
+//   return false;
+// }
