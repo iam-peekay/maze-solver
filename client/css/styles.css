@@ -1,0 +1,72 @@
+h1 {
+  text-align: center;
+  margin: 30px;
+}
+
+div {
+  word-wrap: break-word;
+  margin:  .5em 0;
+  padding: .2em;
+}
+
+.spinner {
+  position: relative;
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  font-size: 32px;
+  border-bottom: 1px solid;
+  vertical-align: middle;
+  overflow: hidden;
+  text-indent: 100%;
+  -webkit-animation: 0.5s spinner linear infinite;
+     -moz-animation: 0.5s spinner linear infinite;
+          animation: 0.5s spinner linear infinite;
+
+    &,
+    &:after {
+        border-radius: 100%; /* [1] */
+    }
+
+    &:after {
+        content: "";
+        position: absolute;
+        top:    0;
+        right:  0;
+        bottom: 0;
+        left:   0;
+        border: 1px solid;
+        opacity: 0.5;
+    }
+
+}
+
+@-webkit-keyframes spinner {
+  to {
+      -webkit-transform: rotate(360deg);
+  }
+}
+
+@-moz-keyframes spinner {
+  to {
+      -moz-transform: rotate(360deg);
+  }
+}
+
+@keyframes spinner {
+  to {
+      transform: rotate(360deg);
+  }
+}
+
+.box {
+  color: darken(#2B2D42, 30%);
+  background-color: #2B2D42;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.box--foo {
+  background-color: #2B2D42;
+  color: #EF233C;
+}

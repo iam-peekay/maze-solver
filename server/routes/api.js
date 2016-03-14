@@ -91,14 +91,14 @@ module.exports = (app) => {
   // Solve current maze and send path solution as response
   app.get('/solvemaze', (req, res) => {
     currentPath = solvePuzzle(currentMaze);
-    res.status(200).send({'Path to end of maze': currentPath});
+    res.status(200).send({'path': currentPath});
   });
 
   // Submit the solved maze to the Krypton API
   app.get('/submitmaze', (req, res) => {
     var id = currentMaze.id;
     console.log('Current maze:', currentMaze);
-    console.log('Current path: ', currentPath);
+    console.log('Solution path: ', currentPath);
     axios.post(`${baseURL}/maze/${id}/solve`, currentPath)
       .then((response) => {
         console.log(response);

@@ -3,29 +3,34 @@
   <head>
     <title>Krypton Maze Challenge</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    <link rel="stylesheet" href="lib/bootstrap.min.css">
+    <link rel="stylesheet" href="css/styles.css">
   </head>
   <body>
     <h1> Welcome to Krypton's Maze Challenge </h1>
     <div class="container">
       <div class="row">
         <div class="col-xs-6 col-md-4">
-          <button id="getMaze">Get the next maze!</button>
+          <button id="getMaze" class="btn btn-default" type="submit">Get the next maze!</button>
           <div id="currentMaze">
 
           </div>
         </div>
         <div class="col-xs-6 col-md-4">
-          <button id="solveMaze">Solve the maze!</button>
+          <button id="solveMaze" class="btn btn-default" type="submit">Solve the maze!</button>
           <div id="solvedMaze">
 
           </div>
         </div>
         <div class="col-xs-6 col-md-4">
-          <button id="submitSolution">Submit my solution!</button>
+          <button id="submitSolution" class="btn btn-default" type="submit">Submit my solution!</button>
+          <div id="submitMaze">
+
+          </div>
         </div>
       </div>
     </div>
+    <script src="lib/axios.min.js"></script>
     <script src="app.js"></script>
   </body>
 </html>
