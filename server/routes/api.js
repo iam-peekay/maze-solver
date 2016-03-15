@@ -83,7 +83,7 @@ module.exports = (app) => {
         currentMaze = maze.data;
         res.status(200).send(currentMaze);
       })
-      .catch(function (error) {
+      .catch((error) => {
         throw new Error(error.stack);
       });
   });
@@ -101,17 +101,22 @@ module.exports = (app) => {
     console.log('Solution path: ', currentPath);
     axios.post(`${baseURL}/maze/${id}/solve`, currentPath)
       .then((response) => {
-        console.log(response);
+        console.log('Success! ', response);
         if (response.status === 200) {
           res.status(200).send(response);
         }
       })
       .catch((error) => {
+        console.log('Oops, you got the wrong answer! ', error);
         res.status(500).send(error);
         throw new Error(error.stack);
       });
   });
 }
+
+
+
+
 
 
 /* ==============================================================
@@ -166,7 +171,7 @@ module.exports = (app) => {
 // makeBoardSync(maze.data.id, maze.data.height, maze.data.width, currentBoard);
 
 // Then in "findPath", add this line and remove the synchronous
-// calls to API
+// calls to API:
 // if (row < 0 || col < 0 || (board[row][col] === 0)) {
 //   return false;
 // }

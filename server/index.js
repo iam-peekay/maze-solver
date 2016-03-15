@@ -6,10 +6,13 @@ const port = process.env.PORT || 3000;
 const bodyParser = require('body-parser');
 const apiRoute = express.Router();
 
+// Define middleware
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
-app.use('/api', apiRoute);
 app.use(express.static('client'));
+
+// Define main API endpoint route
+app.use('/api', apiRoute);
 require('./routes/api')(apiRoute);
 
 // Views
