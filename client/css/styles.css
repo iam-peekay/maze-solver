@@ -23,39 +23,39 @@ div {
      -moz-animation: 0.5s spinner linear infinite;
           animation: 0.5s spinner linear infinite;
 
-    &,
-    &:after {
-        border-radius: 100%; /* [1] */
-    }
+  &,
+  &:after {
+      border-radius: 100%; /* [1] */
+  }
 
-    &:after {
-        content: "";
-        position: absolute;
-        top:    0;
-        right:  0;
-        bottom: 0;
-        left:   0;
-        border: 1px solid;
-        opacity: 0.5;
-    }
+  &:after {
+      content: "";
+      position: absolute;
+      top:    0;
+      right:  0;
+      bottom: 0;
+      left:   0;
+      border: 1px solid;
+      opacity: 0.5;
+  }
 
 }
 
 @-webkit-keyframes spinner {
   to {
-      -webkit-transform: rotate(360deg);
+    -webkit-transform: rotate(360deg);
   }
 }
 
 @-moz-keyframes spinner {
   to {
-      -moz-transform: rotate(360deg);
+    -moz-transform: rotate(360deg);
   }
 }
 
 @keyframes spinner {
   to {
-      transform: rotate(360deg);
+    transform: rotate(360deg);
   }
 }
 

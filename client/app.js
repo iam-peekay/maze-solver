@@ -37,7 +37,7 @@ function handleSolvetMaze() {
     solvedMaze.insertAdjacentHTML('afterbegin', `<pre>Path: \n${output} </pre>`);
   })
   .catch((response) => {
-    console.log(response);
+    console.log('Error: ', response);
   });
 }
 
@@ -48,7 +48,7 @@ function handleSubmitSolution() {
     submitMaze.insertAdjacentHTML('afterbegin', `<pre>Response: ${response.data.data} </pre>`);
   })
   .catch((response) => {
-    console.log(response);
+    console.log('Error: ', response);
   });
 }
 
