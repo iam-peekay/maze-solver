@@ -17,7 +17,7 @@ function handleGetMaze() {
 
   axios('/api/getMaze')
   .then((response) => {
-    currentMaze.insertAdjacentHTML('afterbegin', `<pre>Height: ${response.data.height} \nWidth: ${response.data.width} \nID: ${response.data.id}
+    currentMaze.insertAdjacentHTML('afterbegin', `<pre><b>Height:</b> ${response.data.height} \n<b>Width:</b> ${response.data.width} \n<b>ID:</b> ${response.data.id}
      </pre>`);
   })
   .catch((response) => {
@@ -31,10 +31,14 @@ function handleSolvetMaze() {
   .then((response) => {
     stopSpinner();
     var output = '';
-    response.data.path.forEach((item) => {
-      output += 'x: ' + item.x +', y: ' + item.y + '\n';
-    });
-    solvedMaze.insertAdjacentHTML('afterbegin', `<pre>Path: \n${output} </pre>`);
+    if (response.data.path === []) {
+      output = 'No solution found.'
+    } else {
+      response.data.path.forEach((item) => {
+        output += 'x: ' + item.x +', y: ' + item.y + '\n';
+      });
+    }
+    solvedMaze.insertAdjacentHTML('afterbegin', `<pre><b>Path:</b> \n${output} </pre>`);
   })
   .catch((response) => {
     console.log('Error: ', response);
@@ -45,7 +49,7 @@ function handleSolvetMaze() {
 function handleSubmitSolution() {
   axios('/api/submitmaze')
   .then((response) => {
-    submitMaze.insertAdjacentHTML('afterbegin', `<pre>Response: ${response.data.data} </pre>`);
+    submitMaze.insertAdjacentHTML('afterbegin', `<pre><b>Response:</b> ${response.data.data} </pre>`);
   })
   .catch((response) => {
     console.log('Error: ', response);

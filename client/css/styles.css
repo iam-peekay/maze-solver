@@ -12,9 +12,9 @@ div {
 .spinner {
   position: relative;
   display: inline-block;
-  width: 1em;
+  width: 1.2em;
   height: 1em;
-  font-size: 32px;
+  font-size: 38px;
   border-bottom: 1px solid;
   vertical-align: middle;
   overflow: hidden;
@@ -35,10 +35,13 @@ div {
       right:  0;
       bottom: 0;
       left:   0;
-      border: 1px solid;
+      border: 2px solid;
       opacity: 0.5;
   }
+}
 
+.spinner p {
+  font-size: 2em;
 }
 
 @-webkit-keyframes spinner {
@@ -60,13 +63,15 @@ div {
 }
 
 .box {
-  color: darken(#2B2D42, 30%);
-  background-color: #2B2D42;
+  margin:  1em 0;
+  padding: 3em;
+  color: darken(#BADA55, 30%);
+  background-color: #BADA55;
   border-radius: 4px;
   text-align: center;
 }
 
 .box--foo {
-  background-color: #2B2D42;
+  background-color: #212121;
   color: #EF233C;
 }
