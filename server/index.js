@@ -8,7 +8,7 @@ const apiRoute = express.Router();
 
 // Define middleware
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('client'));
 
 // Define main API endpoint route

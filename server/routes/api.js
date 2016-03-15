@@ -1,6 +1,6 @@
 const axios = require('axios');
 const request = require('sync-request');
-const baseURL =  'http://ec2-52-32-160-115.us-west-2.compute.amazonaws.com:9099';
+const baseURL = "http://ec2-52-32-160-115.us-west-2.compute.amazonaws.com:9099";
 // These variables represent the current state of the maze
 // var currentBoard = [];
 var currentMaze;
@@ -41,7 +41,7 @@ const solvePuzzle = (currentMaze) => {
     // Since some of the responses are returning internal server
     // error, let's check for this and re-run the request if we
     // get internal server error
-    while(res.statusCode > 500) {
+    while (res.statusCode > 500) {
       res = request('GET', `${baseURL}/maze/${id}/check?x=${row}&y=${col}`);
     }
 
@@ -66,7 +66,7 @@ const solvePuzzle = (currentMaze) => {
     var atOrigin = row === 0 && col === 0;
     // Check all adjacent points down and left (working backwards)
     if (atOrigin || findPath(id, col, row - 1, path, memo) || findPath(id, col - 1, row, path, memo)) {
-      path.push({x: row, y: col});
+      path.push({ x: row, y: col });
       pathExists = true;
     }
     // Mark point with either path existing or not existing
@@ -91,7 +91,7 @@ module.exports = (app) => {
   // Solve current maze and send path solution as response
   app.get('/solvemaze', (req, res) => {
     currentPath = solvePuzzle(currentMaze);
-    res.status(200).send({'path': currentPath});
+    res.status(200).send({ 'path': currentPath });
   });
 
   // Submit the solved maze to the Krypton API
@@ -126,10 +126,10 @@ module.exports = (app) => {
 */
   const checkValidAsync = (id, i, j) => {
     axios.get(`${baseURL}/maze/${id}/check?x=${i}&y=${j}`)
-      .then(function(response) {
+      .then((response) => {
         currentBoard[i][j] = 1;
       })
-      .catch(function (error) {
+      .catch((error) => {
         currentBoard[i][j] = 0;
       });
   }
@@ -147,22 +147,22 @@ module.exports = (app) => {
   };
 
   const makeBoardSync = (id, height, width, board) => {
-      for (var i = 0; i < height; i++) {
-        board.push([]);
-        for (var j = 0; j < width; j++) {
-          board[i][j] = -1;
-          var res = request('GET', `${baseURL}/maze/${id}/check?x=${i}&y=${j}`);
-          while(res.statusCode > 500) {
-            res = request('GET', `${baseURL}/maze/${id}/check?x=${i}&y=${j}`);
-          }
-          if (res.statusCode === 200) {
-              board[i][j] = 1;
-          } else {
-            board[i][j] = 0;
-          }
+    for (var i = 0; i < height; i++) {
+      board.push([]);
+      for (var j = 0; j < width; j++) {
+        board[i][j] = -1;
+        var res = request('GET', `${baseURL}/maze/${id}/check?x=${i}&y=${j}`);
+        while (res.statusCode > 500) {
+          res = request('GET', `${baseURL}/maze/${id}/check?x=${i}&y=${j}`);
+        }
+        if (res.statusCode === 200) {
+            board[i][j] = 1;
+        } else {
+          board[i][j] = 0;
         }
       }
-      console.log(board);
+    }
+    console.log(board);
   };
 
 // Used in "getMaze" api method when we want to build up the
